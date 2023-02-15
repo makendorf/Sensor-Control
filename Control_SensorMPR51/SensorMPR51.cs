@@ -70,7 +70,7 @@ namespace Control_Sensor
                     case 999:
                         {
                             label6.ForeColor = Color.Red;
-                            label6.Text = "OFF";
+                            label6.Text = "ВЫКЛ";
                             break;
                         }
                     default:
@@ -96,7 +96,7 @@ namespace Control_Sensor
                     case 999:
                         {
                             label7.ForeColor = Color.Red;
-                            label7.Text = "OFF";
+                            label7.Text = "ВЫКЛ";
                             break;
                         }
                     default:
@@ -122,7 +122,7 @@ namespace Control_Sensor
                     case 999:
                         {
                             label8.ForeColor = Color.Red;
-                            label8.Text = "OFF";
+                            label8.Text = "ВЫКЛ";
                             break;
                         }
                     default:
@@ -148,7 +148,7 @@ namespace Control_Sensor
                     case 999:
                         {
                             label9.ForeColor = Color.Red;
-                            label9.Text = "OFF";
+                            label9.Text = "ВЫКЛ";
                             break;
                         }
                     default:

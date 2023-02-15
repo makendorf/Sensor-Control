@@ -17,8 +17,7 @@ namespace Service
         public static ClientID ID = new ClientID();
         public Clients()
         {
-            Process process = Process.GetCurrentProcess();
-            FileInfo info = new FileInfo(process.MainModule.FileName);
+            FileInfo info = new FileInfo(Process.GetCurrentProcess().MainModule.FileName);
             Directory.SetCurrentDirectory(info.DirectoryName + @"\");
             if (File.Exists($@"ID.cfg"))
             {

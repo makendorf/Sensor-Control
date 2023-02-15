@@ -101,7 +101,7 @@ namespace Control_Sensor
                 case 999:
                     {
                         label.ForeColor = Color.Red;
-                        label.Text = "OFF";
+                        label.Text = "ВЫКЛ";
                         break;
                     }
                 default:

@@ -312,6 +312,11 @@ namespace Client
             payload.Data = NetworkSerialization.Serialize(listBox1.SelectedValue);
             Client.client.Send(payload);
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public static class Util
