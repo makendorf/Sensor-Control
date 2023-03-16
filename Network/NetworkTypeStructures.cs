@@ -54,12 +54,12 @@ namespace Network
     [Serializable]
     public class NetworkPayload
     {
-        public string Sender;
-        public string Receiver;
+        public Guid Sender;
+        public Guid Receiver;
         public PacketType Type;
         public byte[] Data;
 
-        public NetworkPayload(PacketType type, byte[] data, string sender, string receiver)
+        public NetworkPayload(PacketType type, byte[] data, Guid sender, Guid receiver)
         {
             Type = type;
             Data = data;
@@ -73,21 +73,19 @@ namespace Network
         {
             Type = type;
             Data = data;
-            Sender = "";
-            Receiver = "";
+            Sender = Guid.Empty;
+            Receiver = Guid.Empty;
         }
         public NetworkPayload(PacketType type)
         {
             Type = type;
             Data = new byte[0];
-            Sender = "";
-            Receiver = "";
+            Sender = Guid.Empty;
+            Receiver = Guid.Empty;
         }
         public void Swap()
         {
-            string _ = Sender;
-            Sender = Receiver;
-            Receiver = _;
+            (Receiver, Sender) = (Sender, Receiver);
         }
     }
     

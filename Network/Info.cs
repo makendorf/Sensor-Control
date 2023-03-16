@@ -16,7 +16,7 @@ namespace Network
     public class ClientID
     {
         //  GUID, присваиваемый сервером при соединении
-        public string ID;
+        public Guid GUID;
         //  Сервисное имя клиента
         public string Name = "Undefined";
         //  Отображаемое имя клиента
@@ -28,17 +28,17 @@ namespace Network
         public ClientID()
         {
             Type = ClientType.Unknown;
-            ID = Guid.NewGuid().ToString();
+            GUID = Guid.NewGuid();
         }
-        public ClientID(string id)
+        public ClientID(Guid id)
         {
             Type = ClientType.Unknown;
-            ID = id;
+            GUID = id;
         }
 
         public override string ToString()
         {
-            return ID;
+            return GUID.ToString();
         }
 
 

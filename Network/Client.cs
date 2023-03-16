@@ -184,9 +184,9 @@ namespace Network
 
         public void Send(NetworkPayload Payload)
         {
-            Payload.Sender = ID.ToString();
+            Payload.Sender = ID.GUID;
             int PacketID = new Random().Next(1000, 2000);
-            if (String.IsNullOrEmpty(Payload.Receiver))
+            if (Guid.Empty == Payload.Receiver || null == Payload.Receiver)
             {
                 Payload.Receiver = Global.ServerID;
             }

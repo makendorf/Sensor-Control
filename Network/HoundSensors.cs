@@ -57,8 +57,8 @@ namespace Network
         public delegate void Read(Sensor sensor);
         public event Read OnRead;
 
-        private string guid = Guid.NewGuid().ToString();
-        private string guidworkflow;
+        private Guid guid = Guid.NewGuid();
+        private Guid guidworkflow;
         private COMport com = COMport.None;
         private float timerUpdate = 10000;
         private TypeAdapter type = TypeAdapter.None;
@@ -80,7 +80,7 @@ namespace Network
                 }
             }
         }
-        public string _Guid 
+        public Guid _Guid 
         { 
             get => guid;  
             private set
@@ -92,7 +92,7 @@ namespace Network
                 }
             }
         }
-        public string _GuidWorkFlow
+        public Guid _GuidWorkFlow
         {
             get => guidworkflow;
             set
@@ -158,7 +158,7 @@ namespace Network
         {
 
         }
-        public COM(string guid, COMport _port, TypeAdapter type, float update)
+        public COM(Guid guid, COMport _port, TypeAdapter type, float update)
         {
             _Guid = guid;
             _COM = _port;
@@ -285,15 +285,17 @@ namespace Network
     {
         private ConnectionStatus result = ConnectionStatus.None;
         private TypeSensor typeSensor = TypeSensor.None;
-        private string com = "";
+        private Guid guidcom = Guid.Empty;
         private int startAdress = 0;
-        private string guid = Guid.NewGuid().ToString();
+        private Guid guid = Guid.NewGuid();
         private DateTime time;
+        private string Name = "";
+        public string _Name { get { return Name; } set { Name = value; } }
         public TypeSensor TypeSensor { get { return typeSensor; } set { typeSensor = value; } }
         public ConnectionStatus Result { get { return result; } set { result = value; } }
-        public string _COMGUID { get { return com; } set { com = value; } }
+        public Guid _COMGUID { get { return guidcom; } set { guidcom = value; } }
         public int StartAdress { get { return startAdress; } set { startAdress = value; } }
-        public string _Guid { get { return guid; } private set { guid = value; } }
+        public Guid _Guid { get { return guid; } private set { guid = value; } }
         public DateTime _Time { get { return time; } private set { time = value; } }
         public ReadValue[] Channels = new ReadValue[8]
         {
@@ -307,16 +309,17 @@ namespace Network
             new ReadValue("Канал 8", 999, ConnectionStatus.None),
         };
         private int timestamp;
-        public Sensor(string guid, string com, int channel, TypeSensor type)
+        public Sensor(Guid guid, Guid comguid, int channel, TypeSensor type, string name = "")
         {
+            this.Name = name;
             this.guid = guid;
-            this.com = com;
+            this.guidcom = comguid;
             this.startAdress = channel;
             this.typeSensor = type;
         }
-        public Sensor(string com, int channel, TypeSensor type)
+        public Sensor(Guid comguid, int channel, TypeSensor type)
         {
-            this.com = com;
+            this.guidcom = comguid;
             this.startAdress = channel;
             this.typeSensor = type;
         }
@@ -353,7 +356,7 @@ namespace Network
             }
             return result;
         }
-        public override string ToString() => com.ToString();
+        public override string ToString() => guidcom.ToString();
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -365,7 +368,7 @@ namespace Network
     [Serializable]
     public struct ReadValue
     {
-        public string GuId;
+        public Guid GuId;
         public string NameChannel;
         public float Value;
         public ConnectionStatus Status;
@@ -374,7 +377,7 @@ namespace Network
             NameChannel = name;
             Value = value;
             Status = status;
-            GuId = Guid.NewGuid().ToString();
+            GuId = Guid.NewGuid();
         }
     }
 }

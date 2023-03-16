@@ -116,6 +116,7 @@ namespace Client
                                                     T_Prod = sensor.GetChannelsValue(),
                                                     TimeStamp = sensor._Time
                                                 };
+                                                SensorControl.DoubleClick += SensorControl_DoubleClick;
                                                 flowLayoutPanel1.Controls.Add(SensorControl);
                                                 break;
                                             }
@@ -190,6 +191,18 @@ namespace Client
             }
         }
 
+        private void SensorControl_MouseClick(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                MessageBox.Show("Хуй");
+            }
+        }
+
+        private void SensorControl_DoubleClick(object sender, EventArgs e)
+        {
+            
+        }
         private void Service_Status(bool status)
         {
             if (status)

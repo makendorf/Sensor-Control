@@ -16,7 +16,7 @@ namespace Client
     public partial class AddCOM : MetroForm
     {
         public COM com;
-        public string Workflow;
+        public Guid Workflow;
         public AddCOM()
         {
             InitializeComponent();

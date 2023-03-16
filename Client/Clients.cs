@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Network;
 
 namespace Client
@@ -22,7 +14,7 @@ namespace Client
         {
             DisplayName = System.Net.Dns.GetHostName() + "/" + Environment.UserName,
             Name = System.Net.Dns.GetHostName() + "/" + Environment.UserName,
-            ID = Guid.NewGuid().ToString(),
+            GUID = Guid.NewGuid(),
             Type = ClientType.Client,
             ChangeIdenififer = false
         };

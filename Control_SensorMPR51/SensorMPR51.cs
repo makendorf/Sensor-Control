@@ -55,7 +55,7 @@ namespace Control_Sensor
             }
         }
 
-        public string GUID = "";
+        public Guid GUID = Guid.Empty;
         public double T_Prod 
         { 
             get 
@@ -222,6 +222,26 @@ namespace Control_Sensor
             HeadBox.Size = new Size(HeadBox.Width, HeadBox.Height);
             HeadBitmap = new Bitmap(HeadBox.Width, HeadBox.Height);
             DrawHeadImage(headname, Color.Red);
+        }
+        protected override void OnControlAdded(ControlEventArgs e)
+        {
+            base.OnControlAdded(e);
+            e.Control.MouseClick += new MouseEventHandler(Control_MouseClick);
+            e.Control.DoubleClick += new EventHandler(Control_DoubleClick);
+        }
+        protected override void OnControlRemoved(ControlEventArgs e)
+        {
+            e.Control.DoubleClick -= new EventHandler(Control_DoubleClick);
+            e.Control.MouseClick -= new MouseEventHandler(Control_MouseClick);
+            base.OnControlRemoved(e);
+        }
+        private void Control_MouseClick(object sender, MouseEventArgs e)
+        {
+            OnMouseClick(e);
+        }
+        void Control_DoubleClick(object sender, EventArgs e)
+        {
+            OnDoubleClick(e);
         }
     }
 }

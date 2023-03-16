@@ -41,7 +41,7 @@ namespace Client
             {
                 DisplayName = metroTextBox1.Text,
             };
-            registration.GUID = JsonConvert.DeserializeObject<ClientID>(File.ReadAllText("service\\ID.cfg")).ID;
+            registration.GUID = JsonConvert.DeserializeObject<ClientID>(File.ReadAllText("service\\ID.cfg")).GUID;
             
             DialogResult = DialogResult.OK;
             Close();

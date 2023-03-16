@@ -70,12 +70,12 @@ namespace Network
             listener = new TcpListener(Address, Port);
         }
 
-        public object FindClient(string receiver)
+        public object FindClient(Guid receiver)
         {
             for(int i = 0; i < _connections.Count; i++)
             {
                 Info info = _connections[i];
-                if(info.ID.ToString() == receiver)
+                if(info.ID.GUID == receiver)
                 {
                     return info;
                 }
@@ -163,7 +163,7 @@ namespace Network
         {
             for(int i = 0; i < _connections.Count; i++)
             {
-                if(ID.ID == _connections[i].ID.ID)
+                if(ID.GUID == _connections[i].ID.GUID)
                 {
                     Client.ID = ID;
                     _connections[i] = Client;

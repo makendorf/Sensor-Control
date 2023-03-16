@@ -99,7 +99,7 @@ namespace Service
         private void Sensors_OnRead(Sensor sensor)
         {
             File.WriteAllText($@"sensors\{sensor.StartAdress}.cfg", JsonConvert.SerializeObject(sensor, Formatting.Indented));
-            var payload = new NetworkPayload(PacketType.NewValueSensor, NetworkSerialization.Serialize(sensor), Client.client.ID.ID, "CLIENTS");
+            var payload = new NetworkPayload(PacketType.NewValueSensor, NetworkSerialization.Serialize(sensor), Client.client.ID.GUID, Global.CLIENTS);
             Client.client.Send(payload);
         }
 

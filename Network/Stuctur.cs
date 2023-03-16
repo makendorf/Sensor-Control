@@ -9,18 +9,18 @@ namespace Network
     [Serializable]
     public class RegistrationService : INotifyPropertyChanged
     {
-        public RegistrationService(string _guid, string _name)
+        public RegistrationService(Guid _guid, string _name)
         {
             GUID = _guid;
             DisplayName = _name;
         }
         public RegistrationService()
         {
-            GUID = "";
+            GUID = Guid.Empty;
             DisplayName = "";
         }
 
-        private string guid;
+        private Guid guid;
         private string name;
         private bool isOnline;
 
@@ -49,7 +49,7 @@ namespace Network
                 }
             } 
         }
-        public string GUID
+        public Guid GUID
         {
             get => guid;
             set

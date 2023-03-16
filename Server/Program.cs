@@ -1,7 +1,10 @@
 ﻿using Network;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
+using System.Threading;
+using System.Xml.Linq;
 
 namespace Server
 {
@@ -34,13 +37,13 @@ namespace Server
                     var onExit = false;
                     for (int i = 0; i < listPeer.Count; i++)
                     {
-                        if (reader.GetString(0) == listPeer[i].ID.ID) onExit = true;
+                        if (reader.GetGuid(0) == listPeer[i].ID.GUID) onExit = true;
                     }
                     if (!onExit)
                     {
                         Info info = new Info(null, new ClientID
                         {
-                            ID = reader.GetString(0),
+                            GUID = reader.GetGuid(0),
                             DisplayName = reader.GetString(1),
                             Type = ClientType.Service
                         });
@@ -54,7 +57,7 @@ namespace Server
             var listPeer = Server.GetClients();
             for (int i = 0; i < listPeer.Count; i++)
             {
-                if (client.ID.ID == listPeer[i].ID.ID)
+                if (client.ID.GUID == listPeer[i].ID.GUID)
                 {
                     switch (client.ID.Type)
                     {
@@ -83,7 +86,7 @@ namespace Server
                                 var srv = new RegistrationService()
                                 {
                                     DisplayName = listPeer[i].ID.DisplayName,
-                                    GUID = listPeer[i].ID.ID,
+                                    GUID = listPeer[i].ID.GUID,
                                     IsOnline = false
                                 };
                                 for (int j = 0; j < listPeer.Count; j++)
@@ -128,7 +131,7 @@ namespace Server
                             var srv = new RegistrationService()
                             {
                                 DisplayName = pear.ID.DisplayName,
-                                GUID = pear.ID.ID,
+                                GUID = pear.ID.GUID,
                                 IsOnline = true
                             };
                             for (int j = 0; j < listPeer.Count; j++)
@@ -138,7 +141,7 @@ namespace Server
                                     Server.Send(listPeer[j], NetworkSerialization.Serialize(new NetworkPayload(PacketType.ServiceDisconection, NetworkSerialization.Serialize(srv))));
                                 }
                             }
-                            Log.Debug($"{Sender.Client.Client.RemoteEndPoint}: Служба {((Info)Server.FindClient(ID.ID)).ID.DisplayName} запущена");
+                            Log.Debug($"{Sender.Client.Client.RemoteEndPoint}: Служба {((Info)Server.FindClient(ID.GUID)).ID.DisplayName} запущена");
                             break;
                         }
                 }
@@ -155,7 +158,7 @@ namespace Server
                     {
                         switch (data.Receiver)
                         {
-                            case Global.ServerID:
+                            case var value when value == Global.ServerID:
                                 {
                                     switch (data.Type)
                                     {
@@ -167,7 +170,7 @@ namespace Server
                                                     List<COM> _coms = new List<COM>();
                                                     for(int i = 0; i < COMs.Count; i++)
                                                     {
-                                                        if(COMs[i]._GuidWorkFlow == Sender.ID.ID)
+                                                        if(COMs[i]._GuidWorkFlow == Sender.ID.GUID)
                                                         {
                                                             _coms.Add(COMs[i]);
                                                         }
@@ -184,12 +187,13 @@ namespace Server
                                     }
                                     break;
                                 }
-                            case "CLIENTS":
+                            case var value when value == Global.CLIENTS:
                                 {
                                     if(data.Type == PacketType.NewValueSensor)
                                     {
                                         var sensor = (Sensor)NetworkSerialization.Deserialize(data.Data);
-                                        for(int i = 0; i < COMs.Count; i++)
+                                        
+                                        for (int i = 0; i < COMs.Count; i++)
                                         {
                                             if(COMs[i]._Guid == sensor._COMGUID)
                                             {
@@ -226,7 +230,7 @@ namespace Server
                     {
                         switch (data.Receiver)
                         {
-                            case Global.ServerID:
+                            case var value when value == Global.ServerID:
                                 {
                                     switch (data.Type)
                                     {
@@ -266,7 +270,7 @@ namespace Server
                                                         var srv = new RegistrationService
                                                         {
                                                             DisplayName = pear.ID.DisplayName,
-                                                            GUID = pear.ID.ID,
+                                                            GUID = pear.ID.GUID,
                                                             IsOnline = pear.State == System.Net.NetworkInformation.TcpState.Established
                                                         };
                                                         servicePeer.Add(srv);
@@ -278,7 +282,7 @@ namespace Server
                                             }
                                         case PacketType.GetAllCom:
                                             {
-                                                string WF = (string)NetworkSerialization.Deserialize(data.Data);
+                                                Guid WF = (Guid)NetworkSerialization.Deserialize(data.Data);
                                                 List<COM> _coms = new List<COM>();
                                                 for (int i = 0; i < COMs.Count; i++)
                                                 {
@@ -295,7 +299,7 @@ namespace Server
                                             }
                                         case PacketType.GetAllSensors:
                                             {
-                                                var COMGUID = (string)NetworkSerialization.Deserialize(data.Data);
+                                                var COMGUID = (Guid)NetworkSerialization.Deserialize(data.Data);
 
                                                 foreach(var com in COMs)
                                                 {
@@ -347,30 +351,57 @@ namespace Server
                                         case PacketType.AddSensorInCom:
                                             {
                                                 var sensor = (Sensor)NetworkSerialization.Deserialize(data.Data);
-                                                string sql = "insert into Sensors (GUID, COMGUID, sAdress, Type) values " +
-                                                    "(@guid, @com, @addr, @type)";
-                                                SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
+                                                string sql = "insert into Sensors (GUID, COMGUID, sAdress, Type, Name) values " +
+                                                    "(@guid, @com, @addr, @type, @name)";
+                                                SqlConn.BeginTransaction();
+                                                int count = 0;
+                                                Guid wf = Guid.Empty;
+                                                try
                                                 {
-                                                    new System.Data.SqlClient.SqlParameter("@guid", sensor._Guid),
-                                                    new System.Data.SqlClient.SqlParameter("@com", sensor._COMGUID),
-                                                    new System.Data.SqlClient.SqlParameter("@addr", sensor.StartAdress),
-                                                    new System.Data.SqlClient.SqlParameter("@type", (int)sensor.TypeSensor)
-                                                });
-                                                int count = SqlConn.ExecuteNonQuery(sql);
+                                                    SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
+                                                    {
+                                                        new System.Data.SqlClient.SqlParameter("@guid", sensor._Guid),
+                                                        new System.Data.SqlClient.SqlParameter("@com", sensor._COMGUID),
+                                                        new System.Data.SqlClient.SqlParameter("@addr", sensor.StartAdress),
+                                                        new System.Data.SqlClient.SqlParameter("@type", (int)sensor.TypeSensor),
+                                                        new System.Data.SqlClient.SqlParameter("@name", sensor._Name),
+                                                    });
+                                                    count = SqlConn.ExecuteNonQuery(sql);
 
-                                                string wf = "";
+                                                    sql = "insert into Channels (GUID, GUIDSENSOR, NAME) values (@guid, @sensorGuid, @name)";
+                                                    for(int i = 0; i < sensor.Channels.Length; i++)
+                                                    {
+                                                        SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
+                                                        {
+                                                            new System.Data.SqlClient.SqlParameter("@sensorGuid", sensor._Guid),
+                                                            new System.Data.SqlClient.SqlParameter("@guid", sensor.Channels[i].GuId),
+                                                            new System.Data.SqlClient.SqlParameter("@name", sensor.Channels[i].NameChannel),
+                                                        });
+                                                        SqlConn.ExecuteNonQuery();
+                                                    }
+                                                    
+
+                                                    SqlConn.Commit();
+                                                }
+                                                catch(Exception ex)
+                                                {
+                                                    Log.Error(ex.Message);
+                                                    SqlConn.RollBack();
+                                                }
+
                                                 sql = "select top 1 Workflow from COM where GUID like @guid";
                                                 SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
-                                                {
-                                                    new System.Data.SqlClient.SqlParameter("@guid", sensor._COMGUID)
-                                                });
-                                                using(var reader = SqlConn.ExecuteQuery(sql))
+                                                    {
+                                                        new System.Data.SqlClient.SqlParameter("@guid", sensor._COMGUID)
+                                                    });
+                                                using (var reader = SqlConn.ExecuteQuery(sql))
                                                 {
                                                     while (reader.Read())
                                                     {
-                                                        wf = reader.GetString(0);
+                                                        wf = reader.GetGuid(0);
                                                     }
                                                 }
+
                                                 Log.Info($@"{wf}");
                                                 var peer = (Info)Server.FindClient(wf);
                                                 Log.Info($@"{peer.ID.DisplayName}");
@@ -408,6 +439,43 @@ namespace Server
             }
         }
 
+        private static void WriteInDBValueSensor(Sensor sensor)
+        {
+            dynamic TestValue(float v)
+            {
+                if (v == 999) return DBNull.Value;
+                else return v;
+            }
+            SQL SqlConn = new SQL();
+            SqlConn.BeginTransaction();
+            string sql = "insert into " +
+                "SensorsValue (GUIDSENSOR, DT, C1, C2, C3, C4, C5, C6, C7, C8) " +
+                "values (@guid, GETDATE(), @c1, @c2, @c3, @c4, @c5, @c6, @c7, @c8)";
+            SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
+            {
+                new System.Data.SqlClient.SqlParameter("@guid", sensor._Guid),
+                new System.Data.SqlClient.SqlParameter("@c1", TestValue(sensor.Channels[0].Value)),
+                new System.Data.SqlClient.SqlParameter("@c2", TestValue(sensor.Channels[1].Value)),
+                new System.Data.SqlClient.SqlParameter("@c3", TestValue(sensor.Channels[2].Value)),
+                new System.Data.SqlClient.SqlParameter("@c4", TestValue(sensor.Channels[3].Value)),
+                new System.Data.SqlClient.SqlParameter("@c5", TestValue(sensor.Channels[4].Value)),
+                new System.Data.SqlClient.SqlParameter("@c6", TestValue(sensor.Channels[5].Value)),
+                new System.Data.SqlClient.SqlParameter("@c7", TestValue(sensor.Channels[6].Value)),
+                new System.Data.SqlClient.SqlParameter("@c8", TestValue(sensor.Channels[7].Value)),
+            });
+            try
+            {
+                SqlConn.ExecuteNonQuery(sql);
+                SqlConn.Commit();
+            }
+            catch
+            {
+                SqlConn.RollBack();
+            }
+            SqlConn.Close();
+            
+        }
+
         private static List<COM> GetAllValue()
         {
             SQL SqlConn = new SQL();
@@ -417,11 +485,11 @@ namespace Server
             {
                 while (reader.Read())
                 {
-                    var _guid = reader.GetString(1);
-                    var _port = (COMport)reader.GetInt32(2);
-                    var _type = (TypeAdapter)reader.GetInt32(4);
-                    var _timer = reader.GetFloat(3);
-                    var _WF = reader.GetString(5);
+                    var _guid = reader.GetGuid(0);
+                    var _port = (COMport)reader.GetInt32(1);
+                    var _type = (TypeAdapter)reader.GetInt32(3);
+                    var _timer = reader.GetFloat(2);
+                    var _WF = reader.GetGuid(4);
                     var com = new COM(_guid, _port, _type, _timer)
                     {
                         _GuidWorkFlow = _WF
@@ -442,8 +510,32 @@ namespace Server
                 {
                     while (reader.Read())
                     {
-                        comlist[i].Sensors.Add(new Sensor(reader.GetString(1), reader.GetString(2), reader.GetInt32(3), (TypeSensor)reader.GetInt32(4)));
+                        var sensor = new Sensor(reader.GetGuid(0), reader.GetGuid(1), reader.GetInt32(2), (TypeSensor)reader.GetInt32(3), reader.GetString(4));
+
+                        var _SqlConn = new SQL();
+                        sql = "SELECT GUID, NAME from Channels where GUIDSENSOR = @guidSensor";
+                        _SqlConn.SetSqlParameters(new List<System.Data.SqlClient.SqlParameter>
+                        {
+                            new System.Data.SqlClient.SqlParameter("@guidSensor", sensor._Guid)
+                        });
+                        using (var _reader = _SqlConn.ExecuteQuery(sql))
+                        {
+                            if (reader.HasRows)
+                            {
+                                ReadValue[] value = new ReadValue[8];
+                                for(int j = 0; reader.Read(); j++)
+                                {
+                                    value[j].GuId = reader.GetGuid(0);
+                                    value[j].NameChannel = reader.GetString(1);
+                                    value[j].Value = 999;
+                                    value[j].Status = ConnectionStatus.None;
+                                }
+                            }
+                        }
+
+                        comlist[i].Sensors.Add(sensor);
                     }
+
                 }
             }
 
@@ -463,7 +555,7 @@ namespace Server
             {
                 while (reader.Read())
                 {
-                    com.Add(new COM(reader.GetString(0), (COMport)reader.GetInt32(1), (TypeAdapter)reader.GetInt32(2), reader.GetFloat(3)));
+                    com.Add(new COM(reader.GetGuid(0), (COMport)reader.GetInt32(1), (TypeAdapter)reader.GetInt32(2), reader.GetFloat(3)));
                 }
                 Log.Info(com.Count.ToString());
             }
@@ -482,7 +574,7 @@ namespace Server
             {
                 while (reader.Read())
                 {
-                    sensors.Add(new Sensor(reader.GetString(0), reader.GetString(1), reader.GetInt32(2), (TypeSensor)reader.GetInt32(3)));
+                    sensors.Add(new Sensor(reader.GetGuid(0), reader.GetGuid(1), reader.GetInt32(2), (TypeSensor)reader.GetInt32(3)));
                 }
                 Log.Info(sensors.Count.ToString());
             }
@@ -492,10 +584,6 @@ namespace Server
         static void Main(string[] args)
         {
             StartServer();
-        }
-        public void GetAllCom()
-        {
-
         }
     }
 }

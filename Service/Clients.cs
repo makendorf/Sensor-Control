@@ -29,7 +29,7 @@ namespace Service
                 {
                     DisplayName = System.Net.Dns.GetHostName() + "/" + Environment.UserName,
                     Name = System.Net.Dns.GetHostName() + "/" + Environment.UserName,
-                    ID = Guid.NewGuid().ToString(),
+                    GUID = Guid.NewGuid(),
                     Type = ClientType.Service,
                     ChangeIdenififer = false
                 };

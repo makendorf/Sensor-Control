@@ -24,7 +24,8 @@ namespace Client
             {
                 TypeSensor = (TypeSensor)metroComboBox1.SelectedIndex,
                 _COMGUID = com._Guid,
-                StartAdress = Convert.ToInt32(metroTextBox1.Text)
+                StartAdress = Convert.ToInt32(metroTextBox1.Text),
+                _Name = metroTextBox2.Text
             };
             DialogResult = DialogResult.OK;
             Close();
